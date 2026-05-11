@@ -103,14 +103,6 @@ class Scheduler(SchedulerIOMixin):
         self._active_profile_uid = None
         self._active_profiler = None
 
-    def _schedule_next_batch(self) -> ForwardInput | None:
-        # TODO: support other policies: e.g. DECODE first
-        batch = (
-            self.prefill_manager.schedule_next_batch(self.prefill_budget)
-            or self.decode_manager.schedule_next_batch()
-        )
-        return self._prepare_batch(batch) if batch else None
-
     def run_when_idle(self) -> None:
         """Called when the scheduler is idle to perform background tasks."""
         logger.info_rank0("Scheduler is idle, waiting for new reqs...")
