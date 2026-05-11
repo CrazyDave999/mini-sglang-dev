@@ -19,13 +19,6 @@ logger = init_logger(__name__)
 
 
 async def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--profile",
-        action="store_true",
-        help="Pass profile=true to the server (torch profiler trace under /tmp)",
-    )
-    args = parser.parse_args()
     try:
         random.seed(42)  # reproducibility
 
@@ -42,6 +35,7 @@ async def main():
         TEST_BS = [64]
         PORT = 1919
         MAX_INPUT = 8192
+        PROFILE = False
         # Create the async client
         async with OpenAI(base_url=f"http://127.0.0.1:{PORT}/v1", api_key="") as client:
             MODEL = await get_model_name(client)
@@ -55,7 +49,7 @@ async def main():
                 gen_task = asyncio.create_task(generate_task(max(TEST_BS)))
                 test_msg = generate_prompt(tokenizer, 100)
                 test_result = await benchmark_one(
-                    client, test_msg, 2, MODEL, pbar=False, profile=args.profile
+                    client, test_msg, 2, MODEL, pbar=False, profile=PROFILE
                 )
                 if len(test_result.tics) <= 2:
                     logger.info("Server connection test failed")
@@ -78,7 +72,7 @@ async def main():
                         msgs[:batch_size],
                         output_lengths[:batch_size],
                         MODEL,
-                        profile=args.profile,
+                        profile=PROFILE,
                     )
                     process_benchmark_results(results)
                 except Exception as e:
